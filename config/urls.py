@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('auth_api.urls')),
     path('api/authorization/', include('authorization.urls')),
+    path('api/resources/', include('resources.urls')),
     path('', include('core.urls')),
 
     # Documentation URLs
