@@ -121,3 +121,31 @@ class ResourceAccessTestView(APIView):
                 {'error': 'Resource not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class ResourceStatsView(APIView):
+    """
+    View for getting resource statistics
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_resources = Resource.objects.count()
+        user_resources = Resource.objects.filter(created_by=request.user).count()
+
+        # Count resources by permission requirement
+        permission_stats = {}
+        for resource in Resource.objects.all():
+            perm = resource.permission_required
+            permission_stats[perm] = permission_stats.get(perm, 0) + 1
+
+        return Response({
+            'total_resources': total_resources,
+            'user_resources': user_resources,
+            'permission_distribution': permission_stats,
+            'user_info': {
+                'email': request.user.email,
+                'roles': [role.name for role in request.user.roles.all()],
+                'permissions': [perm.code for perm in request.user.get_permissions()]
+            }
+        })

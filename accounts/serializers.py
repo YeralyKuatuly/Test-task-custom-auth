@@ -6,12 +6,17 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     roles = serializers.StringRelatedField(many=True, read_only=True)
+    permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'is_active',
-                  'roles', 'created_at', 'updated_at']
+                  'roles', 'permissions', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_permissions(self, obj):
+        """Get all permissions for this user through their roles"""
+        return [perm.code for perm in obj.get_permissions()]
 
     def validate_email(self, value):
         """Validate email format and uniqueness"""
