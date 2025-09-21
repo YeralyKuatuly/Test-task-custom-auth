@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -59,6 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Soft delete the user (as required by the task)"""
         self.is_active = False
         self.is_deleted = True
+        self.deleted_at = timezone.now()
         self.save()
 
     def get_full_name(self):
@@ -66,3 +68,26 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
+    def has_permission(self, permission_code):
+        """
+        Check if user has specific permission through their roles
+        """
+        return self.roles.filter(
+            permissions__code=permission_code
+        ).exists()
+
+    def has_role(self, role_name):
+        """
+        Check if user has specific role
+        """
+        return self.roles.filter(name=role_name).exists()
+
+    def get_permissions(self):
+        """
+        Get all permissions for this user through their roles
+        """
+        from authorization.models import Permission
+        return Permission.objects.filter(
+            roles__users=self
+        ).distinct()
