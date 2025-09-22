@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.contenttypes.models import ContentType
 from .models import Role, Permission, UserRole, RolePermission
 from .serializers import (
     RoleSerializer, PermissionSerializer, UserRoleSerializer,
@@ -34,7 +36,15 @@ class PermissionViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can create permissions'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=ADDITION,
+            change_message="Created permission via API"
+        )
 
     def perform_update(self, serializer):
         """Only superusers can update permissions"""
@@ -43,7 +53,15 @@ class PermissionViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can update permissions'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=CHANGE,
+            change_message="Updated permission via API"
+        )
 
     def perform_destroy(self, instance):
         """Only superusers can delete permissions"""
@@ -52,7 +70,18 @@ class PermissionViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can delete permissions'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        object_repr = str(instance)
+        object_id = instance.pk
+        content_type_id = ContentType.objects.get_for_model(instance.__class__).pk
         instance.delete()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            object_repr=object_repr,
+            action_flag=DELETION,
+            change_message="Deleted permission via API"
+        )
 
 
 class RoleViewSet(viewsets.ModelViewSet):
@@ -78,7 +107,15 @@ class RoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can create roles'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=ADDITION,
+            change_message="Created role via API"
+        )
 
     def perform_update(self, serializer):
         """Only superusers can update roles"""
@@ -87,7 +124,15 @@ class RoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can update roles'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=CHANGE,
+            change_message="Updated role via API"
+        )
 
     def perform_destroy(self, instance):
         """Only superusers can delete roles"""
@@ -96,7 +141,18 @@ class RoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can delete roles'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        object_repr = str(instance)
+        object_id = instance.pk
+        content_type_id = ContentType.objects.get_for_model(instance.__class__).pk
         instance.delete()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            object_repr=object_repr,
+            action_flag=DELETION,
+            change_message="Deleted role via API"
+        )
 
 
 class UserRoleViewSet(viewsets.ModelViewSet):
@@ -122,7 +178,15 @@ class UserRoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can assign roles'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=ADDITION,
+            change_message="Assigned role to user via API"
+        )
 
     def perform_update(self, serializer):
         """Only superusers can update role assignments"""
@@ -131,7 +195,15 @@ class UserRoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can update role assignments'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=CHANGE,
+            change_message="Updated user role assignment via API"
+        )
 
     def perform_destroy(self, instance):
         """Only superusers can remove role assignments"""
@@ -140,7 +212,18 @@ class UserRoleViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can remove role assignments'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        object_repr = str(instance)
+        object_id = instance.pk
+        content_type_id = ContentType.objects.get_for_model(instance.__class__).pk
         instance.delete()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            object_repr=object_repr,
+            action_flag=DELETION,
+            change_message="Removed user role assignment via API"
+        )
 
 
 class RolePermissionViewSet(viewsets.ModelViewSet):
@@ -166,7 +249,15 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
                 {'error': 'Only superusers can assign permissions to roles'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=ADDITION,
+            change_message="Assigned permission to role via API"
+        )
 
     def perform_update(self, serializer):
         """Only superusers can update role-permission assignments"""
@@ -176,7 +267,15 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
                           'assignments'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        serializer.save()
+        instance = serializer.save()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=ContentType.objects.get_for_model(instance.__class__).pk,
+            object_id=instance.pk,
+            object_repr=str(instance),
+            action_flag=CHANGE,
+            change_message="Updated role-permission assignment via API"
+        )
 
     def perform_destroy(self, instance):
         """Only superusers can remove role-permission assignments"""
@@ -186,7 +285,18 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
                           'assignments'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        object_repr = str(instance)
+        object_id = instance.pk
+        content_type_id = ContentType.objects.get_for_model(instance.__class__).pk
         instance.delete()
+        LogEntry.objects.log_action(
+            user_id=self.request.user.pk,
+            content_type_id=content_type_id,
+            object_id=object_id,
+            object_repr=object_repr,
+            action_flag=DELETION,
+            change_message="Removed role-permission assignment via API"
+        )
 
 
 class UserManagementView(viewsets.ModelViewSet):

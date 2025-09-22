@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBAC System Demo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RBAC System Demo</h1>
+            <p>Система управления ролями и правами доступа</p>
+            <div style="margin-top:10px; text-align:right;">
+                <button id="logoutBtn" class="btn btn-danger">Выйти</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+            
+            <!-- User Card -->
+            <div id="userCard" class="user-card hidden">
+                <h4>Добро пожаловать!</h4>
+                <p>Загрузка профиля...</p>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <div class="tab active" data-tab="dashboard">Панель управления</div>
+                <div class="tab" data-tab="admin">Администрирование</div>
+                <div class="tab" data-tab="testing">Тестирование</div>
+            </div>
+            
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="section">
+                    <h3>Статистика системы</h3>
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <h4 id="totalUsers">-</h4>
+                            <p>Пользователей</p>
+                        </div>
+                        <div class="stats-card">
+                            <h4 id="totalRoles">-</h4>
+                            <p>Ролей</p>
+                        </div>
+                        <div class="stats-card">
+                            <h4 id="totalPermissions">-</h4>
+                            <p>Прав</p>
+                        </div>
+                        <div class="stats-card">
+                            <h4 id="totalResources">-</h4>
+                            <p>Ресурсов</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Ресурсы системы</h3>
+                    <div id="resourcesList">
+                        <p>Загрузка ресурсов...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Tab -->
+            <div id="admin" class="tab-content">
+                <div id="adminAccessMessage" class="section" style="display: none;">
+                    <div class="alert alert-warning">
+                        <h4>Доступ ограничен</h4>
+                        <p>У вас нет прав для управления ролями и правами. Только пользователи с правами администратора могут изменять эти настройки.</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Управление ролями</h3>
+                    <div id="addRoleSection" class="form-group" style="display: none;">
+                        <button class="btn btn-success" onclick="showAddRoleForm()">Добавить роль</button>
+                    </div>
+                    <div id="rolesList">
+                        <p>Загрузка ролей...</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Управление правами</h3>
+                    <div id="addPermissionSection" class="form-group" style="display: none;">
+                        <button class="btn btn-success" onclick="showAddPermissionForm()">Добавить право</button>
+                    </div>
+                    <div id="permissionsList">
+                        <p>Загрузка прав...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testing Tab -->
+            <div id="testing" class="tab-content">
+                <div class="section">
+                    <h3>Тестирование доступа к ресурсам</h3>
+                    <p>Нажмите "Test Access" для проверки доступа к ресурсам</p>
+                    <div id="testResourcesList">
+                        <p>Загрузка ресурсов для тестирования...</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Тестирование прав</h3>
+                    <div class="form-group">
+                        <label for="testPermission">Код права:</label>
+                        <input type="text" id="testPermission" class="form-control" placeholder="Например: read_users">
+                        <button class="btn btn-primary" onclick="testPermission(document.getElementById('testPermission').value)">Тестировать право</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div id="testModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Тест доступа</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
+

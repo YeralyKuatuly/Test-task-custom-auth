@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему - Custom Auth</title>
+    <link rel="stylesheet" href="{% load static %}{% static 'css/styles.css' %}">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-login:hover {
+            background: #0056b3;
+        }
+        
+        .btn-login:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-links a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .demo-links {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .demo-links h4 {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .demo-links a {
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+        
+        .demo-links a:hover {
+            background: #e9ecef;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Вход в систему</h1>
+            <p>Введите свои учетные данные для входа</p>
+        </div>
+        
+        <div id="messageContainer"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email адрес</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn-login" id="loginBtn">
+                Войти
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <a href="/register/">Нет аккаунта? Зарегистрироваться</a>
+        </div>
+        
+        <div class="demo-links">
+            <h4>Демо-пользователи:</h4>
+            <a href="#" onclick="fillDemoUser('admin@example.com', 'admin123')">Админ</a>
+            <a href="#" onclick="fillDemoUser('manager@example.com', 'password123')">Менеджер</a>
+            <a href="#" onclick="fillDemoUser('viewer@example.com', 'password123')">Просмотр</a>
+            <a href="#" onclick="fillDemoUser('secret@example.com', 'password123')">Секреты</a>
+            <a href="#" onclick="fillDemoUser('analyst@example.com', 'password123')">Аналитик</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('authToken');
+        
+        // Check if user is already logged in
+        if (authToken) {
+            window.location.href = '/dashboard/';
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Вход...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    showMessage('Успешный вход в систему!', 'success');
+                    
+                    // Redirect immediately after successful login with token in URL
+                    window.location.href = `/dashboard/?token=${authToken}`;
+                } else {
+                    showMessage(data.detail || 'Ошибка входа', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка соединения', 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Войти';
+            }
+        }
+        
+        function fillDemoUser(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        }
+        
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

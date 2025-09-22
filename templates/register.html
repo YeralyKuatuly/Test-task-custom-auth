@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Custom Auth</title>
+    <link rel="stylesheet" href="{% load static %}{% static 'css/styles.css' %}">
+    <style>
+        .auth-container {
+            max-width: 450px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        
+        .form-group.full-width {
+            flex: none;
+            width: 100%;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .form-group input.error {
+            border-color: #dc3545;
+        }
+        
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-register:hover {
+            background: #218838;
+        }
+        
+        .btn-register:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-links a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .password-requirements {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .password-requirements ul {
+            margin: 5px 0 0 20px;
+            padding: 0;
+        }
+        
+        .password-requirements li {
+            margin-bottom: 3px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .field-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Регистрация</h1>
+            <p>Создайте новый аккаунт для доступа к системе</p>
+        </div>
+        
+        <div id="messageContainer"></div>
+        
+        <form id="registerForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">Имя</label>
+                    <input type="text" id="first_name" name="first_name" required>
+                    <div class="field-error" id="first_name_error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="last_name">Фамилия</label>
+                    <input type="text" id="last_name" name="last_name" required>
+                    <div class="field-error" id="last_name_error"></div>
+                </div>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="email">Email адрес</label>
+                <input type="email" id="email" name="email" required>
+                <div class="field-error" id="email_error"></div>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required>
+                <div class="field-error" id="password_error"></div>
+                <div class="password-requirements">
+                    <strong>Требования к паролю:</strong>
+                    <ul>
+                        <li>Минимум 8 символов</li>
+                        <li>Содержит буквы и цифры</li>
+                        <li>Не должен быть слишком простым</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="password_confirm">Подтверждение пароля</label>
+                <input type="password" id="password_confirm" name="password_confirm" required>
+                <div class="field-error" id="password_confirm_error"></div>
+            </div>
+            
+            <button type="submit" class="btn-register" id="registerBtn">
+                Зарегистрироваться
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <a href="/login/">Уже есть аккаунт? Войти</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('authToken');
+        
+        // Check if user is already logged in
+        if (authToken) {
+            window.location.href = '/dashboard/';
+        }
+        
+        document.getElementById('registerForm').addEventListener('submit', handleRegister);
+        
+        // Real-time password validation
+        document.getElementById('password').addEventListener('input', validatePassword);
+        document.getElementById('password_confirm').addEventListener('input', validatePasswordConfirm);
+        
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const formData = {
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                password_confirm: document.getElementById('password_confirm').value
+            };
+            
+            // Clear previous errors
+            clearErrors();
+            
+            // Validate passwords match
+            if (formData.password !== formData.password_confirm) {
+                showFieldError('password_confirm', 'Пароли не совпадают');
+                return;
+            }
+            
+            // Validate password strength
+            if (!validatePasswordStrength(formData.password)) {
+                showFieldError('password', 'Пароль не соответствует требованиям');
+                return;
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Регистрация...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Регистрация успешна! Теперь вы можете войти в систему.', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login/';
+                    }, 2000);
+                } else {
+                    if (data.errors) {
+                        // Handle field-specific errors
+                        Object.keys(data.errors).forEach(field => {
+                            showFieldError(field, data.errors[field][0]);
+                        });
+                    } else {
+                        showMessage(data.detail || 'Ошибка регистрации', 'error');
+                    }
+                }
+            } catch (error) {
+                showMessage('Ошибка соединения', 'error');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Зарегистрироваться';
+            }
+        }
+        
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirm').value;
+            
+            if (password && !validatePasswordStrength(password)) {
+                showFieldError('password', 'Пароль не соответствует требованиям');
+            } else {
+                clearFieldError('password');
+            }
+            
+            if (passwordConfirm && password !== passwordConfirm) {
+                showFieldError('password_confirm', 'Пароли не совпадают');
+            } else {
+                clearFieldError('password_confirm');
+            }
+        }
+        
+        function validatePasswordConfirm() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirm').value;
+            
+            if (passwordConfirm && password !== passwordConfirm) {
+                showFieldError('password_confirm', 'Пароли не совпадают');
+            } else {
+                clearFieldError('password_confirm');
+            }
+        }
+        
+        function validatePasswordStrength(password) {
+            return password.length >= 8 && /[A-Za-z]/.test(password) && /[0-9]/.test(password);
+        }
+        
+        function showFieldError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + '_error');
+            
+            field.classList.add('error');
+            errorDiv.textContent = message;
+        }
+        
+        function clearFieldError(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + '_error');
+            
+            field.classList.remove('error');
+            errorDiv.textContent = '';
+        }
+        
+        function clearErrors() {
+            const fields = ['first_name', 'last_name', 'email', 'password', 'password_confirm'];
+            fields.forEach(field => clearFieldError(field));
+        }
+        
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const className = type === 'error' ? 'error-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
