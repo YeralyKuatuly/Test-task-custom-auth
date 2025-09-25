@@ -38,10 +38,10 @@ setup:
 	@echo "Creating .env file from template..."
 	@cp env.example .env
 	@echo "Generating random secret keys..."
-	@python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(50))" > temp_secret.txt
-	@python3 -c "import secrets; print('JWT_SECRET_KEY=' + secrets.token_urlsafe(50))" > temp_jwt.txt
-	@sed -i.bak "s/SECRET_KEY=.*/$$(cat temp_secret.txt)/" .env
-	@sed -i.bak "s/JWT_SECRET_KEY=.*/$$(cat temp_jwt.txt)/" .env
+	@python3 -c "import secrets; print(secrets.token_urlsafe(50))" > temp_secret.txt
+	@python3 -c "import secrets; print(secrets.token_urlsafe(50))" > temp_jwt.txt
+	@SECRET_KEY=$$(cat temp_secret.txt); sed -i.bak "s/SECRET_KEY=.*/SECRET_KEY=$$SECRET_KEY/" .env
+	@JWT_SECRET_KEY=$$(cat temp_jwt.txt); sed -i.bak "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$$JWT_SECRET_KEY/" .env
 	@rm -f temp_secret.txt temp_jwt.txt .env.bak
 	@echo ""
 	@echo "========================================"
